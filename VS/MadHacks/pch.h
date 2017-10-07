@@ -11,6 +11,8 @@
 #include <thread>
 #include <vector>
 
+#include <boost/make_shared.hpp>
+
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 

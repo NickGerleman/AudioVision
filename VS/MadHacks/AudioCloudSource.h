@@ -6,8 +6,8 @@ struct AudioCloudRecord
 		: spAudioPoints(spAudioPoints)
 		, timestamp(timestamp) {}
 
-	boost::shared_ptr<PointCloud> spAudioPoints;
-	Timestamp timestamp;
+	const boost::shared_ptr<const PointCloud> spAudioPoints;
+	const Timestamp timestamp;
 };
 
 

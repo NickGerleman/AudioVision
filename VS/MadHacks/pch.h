@@ -25,4 +25,3 @@
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using IntensityCloud = pcl::PointCloud<pcl::PointXYZI>;
 using Timestamp = std::chrono::high_resolution_clock::time_point;
-

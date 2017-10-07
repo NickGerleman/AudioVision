@@ -14,6 +14,8 @@ struct AudioCloudRecord
 class AudioCloudSource
 {
 public:
+	AudioCloudSource(const AudioCloudSource&) = delete;
+
 	static AudioCloudSource& get();
 	std::deque<AudioCloudRecord> copyBuffer();
 
@@ -40,5 +42,7 @@ public:
 
 private:
 	Camera();
+	openni::Device m_cameraDevice;
+	openni::VideoStream m_depthStream;
 };
 

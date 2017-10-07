@@ -16,9 +16,13 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include <OpenNI2/OpenNI.h>
 
 
 using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using IntensityCloud = pcl::PointCloud<pcl::PointXYZI>;
 using Timestamp = std::chrono::high_resolution_clock::time_point;
+

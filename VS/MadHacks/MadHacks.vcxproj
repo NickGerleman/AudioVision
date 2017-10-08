@@ -126,6 +126,7 @@
     <ClInclude Include="AudioPlayer.h" />
     <ClInclude Include="IMU.h" />
     <ClInclude Include="ISound.h" />
+    <ClInclude Include="NavAudioManager.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PeriodicTimer.h" />
   </ItemGroup>
@@ -141,6 +142,7 @@
     </ClCompile>
     <ClCompile Include="PeriodicTimer.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="NavAudioManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,8 +2,7 @@
 #include "AudioCloudSource.h"
 
 const int BUFFER_SIZE = 50;
-const int SAMPLE_SIZE = 100;
-const int SAMPLES_PER_CLUSTER = 20;
+const int SAMPLE_SIZE = 10;
 
 using namespace std::chrono;
 using namespace openni;
@@ -36,22 +35,44 @@ void AudioCloudSource::startLoop()
 		Camera depthCam;
 		pcl::visualization::PCLVisualizer viz;
 		viz.addPointCloud(boost::make_shared<PointCloud>());
-		viz.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1);
+		viz.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10);
 
 		while (true)
 		{
 			Timestamp captureTime = high_resolution_clock::now();
 			auto spCamCloud = depthCam.captureFrame();
-			auto spSegmentedPoints = segmentCloud(spCamCloud);
+			auto spClusteredPoints = clusterCloud(spCamCloud);
 
-			viz.updatePointCloud(spSegmentedPoints);
+			auto spAudioCloud = audioPointsFromClustered(*spClusteredPoints);
+			auto spWorldAudioCloud = transformToWorld(spAudioCloud, Eigen::Matrix3f()); // Grab rotation data from Eric for here
+
+			static std::deque<boost::shared_ptr<PointCloud>> frames;
+			frames.push_front(spWorldAudioCloud);
+			if (frames.size() > 25)
+				frames.pop_back();
+
+			auto spComposite = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+			for (int i = 0; i < frames.size(); i++)
+			{
+				uint8_t comp = ((frames.size() - i) * 255) / frames.size();
+
+				for (const auto& oldPoint : *(*(frames.begin() + i)))
+				{
+					pcl::PointXYZRGB newPoint(comp, comp, comp);
+					newPoint.x = oldPoint.x;
+					newPoint.y = oldPoint.y;
+					newPoint.z = oldPoint.z;
+					spComposite->push_back(newPoint);
+				}
+			}
+
+			viz.updatePointCloud(spComposite);
 			viz.spinOnce();
-			//auto spWorldAudioCloud = transformToWorld(spSegmentedPoints, Eigen::Matrix3f()); // Grab rotation data from Eric for here
 
 			// block for scope
 			{
 				std::lock_guard<std::mutex> recordLock(m_recordMutex);
-				m_lastCloud = { spCamCloud, captureTime }; // move to segmented later
+				m_lastCloud = { spWorldAudioCloud, captureTime }; // move to segmented later
 				m_hasNewData = true;
 			}
 		}
@@ -60,7 +81,7 @@ void AudioCloudSource::startLoop()
 }
 
 
-boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> AudioCloudSource::segmentCloud(const boost::shared_ptr<PointCloud>& spCloud)
+boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> AudioCloudSource::clusterCloud(const boost::shared_ptr<PointCloud>& spCloud)
 {
 	auto spCloudTree = boost::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
 	spCloudTree->setInputCloud(spCloud);
@@ -98,10 +119,23 @@ boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> AudioCloudSource::segmentCl
 }
 
 
+boost::shared_ptr<PointCloud> AudioCloudSource::audioPointsFromClustered(const pcl::PointCloud<pcl::PointXYZRGB>& clusteredCloud)
+{
+	auto spAudioCloud = boost::make_shared<PointCloud>();
+	for (int i = 0; i < SAMPLE_SIZE; i++)
+	{
+		const auto& origPoint = clusteredCloud[std::rand() % clusteredCloud.size()];
+		spAudioCloud->push_back({origPoint.x, origPoint.y, origPoint.z});
+	}
+
+	return spAudioCloud;
+}
+
+
 boost::shared_ptr<PointCloud> AudioCloudSource::transformToWorld(const boost::shared_ptr<PointCloud>& spCloud, const Eigen::Matrix3f& currentRotation)
 {
 	// TODO
-	return boost::make_shared<PointCloud>();
+	return spCloud;
 }
 
 

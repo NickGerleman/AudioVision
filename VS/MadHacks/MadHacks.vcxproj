@@ -124,6 +124,8 @@
   <ItemGroup>
     <ClInclude Include="AudioCloudSource.h" />
     <ClInclude Include="AudioPlayer.h" />
+    <ClInclude Include="ConcreteSound.h" />
+    <ClInclude Include="ISound.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

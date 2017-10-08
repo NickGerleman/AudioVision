@@ -1,9 +1,16 @@
 #include "pch.h"
 #include "AudioPlayer.h"
+#include "ConcreteSound.h"
+#include "ISound.h"
 #include <iostream>
 #include <fstream>
 #include <cstdint>
 
+AudioPlayer & AudioPlayer::instance()
+{
+	static AudioPlayer* const _instance(new AudioPlayer());
+	return *_instance;
+}
 
 AudioPlayer::AudioPlayer()
 {
@@ -36,6 +43,11 @@ AudioPlayer::AudioPlayer()
 	error_code = alGetError();
 	alGenSources(maxNumSoundSources, sourceNames);
 
+	for (size_t i = 0; i < maxNumSoundSources; i++) {
+		auto newSound = std::make_shared<ConcreteSound>(sourceNames[i], bufferNames[0]);
+		unusedSoundSources.push_back(newSound);
+	}
+
 	error_code = alGetError();
 
 	if (error_code == AL_OUT_OF_MEMORY) {
@@ -57,32 +69,10 @@ AudioPlayer::AudioPlayer()
 	ALfloat listenerOri[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
 
 	/* set orientation */
-	alListener3f(AL_POSITION, 0, 0, -1);
+	alListener3f(AL_POSITION, 0, 0, 0);
 	alListener3f(AL_VELOCITY, 0, 0, 0);
 	alListenerfv(AL_ORIENTATION, listenerOri);
 
-	alSourcei(sourceNames[0], AL_BUFFER, bufferNames[0]);
-	alSourcei(sourceNames[0], AL_LOOPING, AL_TRUE);
-	alSourcePlay(sourceNames[0]);
-
-	float angle = 0;
-
-
-	while (1) {
-		
-		angle += .001;
-		std::cout << angle << "\n";
-		if (angle > 3.14159 * 2) {
-			angle -= 3.14159 * 2;
-		}
-
-		float y = 0;
-		float x = 10 * cos(angle);
-		float z = 10 * sin(angle);
-		alSource3f(sourceNames[0], AL_POSITION, x, y, z);
-	}
-
-	system("pause");
 
 }
 
@@ -104,6 +94,8 @@ void AudioPlayer::loadWave(const char* filename, ALuint buffer) {
 	ALvoid* pcmData = malloc(wavePreamble.dataChunkSize);
 	inputStream.seekg(44);
 	inputStream.read((char *)pcmData, wavePreamble.dataChunkSize);
+
+	inputStream.close();
 
 	alBufferData(buffer, format, pcmData, wavePreamble.dataChunkSize, wavePreamble.sampleRate);
 
@@ -155,4 +147,42 @@ AudioPlayer::~AudioPlayer()
 	for (ALvoid* pcmData : pcms) {
 		free(pcmData);
 	}
+}
+
+std::shared_ptr<std::vector<std::shared_ptr<ISound>>> AudioPlayer::RequestSounds(int requestedNumber)
+{
+	if (requestedNumber > unusedSoundSources.size()) {
+		requestedNumber = unusedSoundSources.size();
+	}
+
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> list = std::make_shared<std::vector<std::shared_ptr<ISound>>>();
+
+	for (size_t i = 0; i < requestedNumber; i++) {
+		std::shared_ptr<ConcreteSound> current = std::dynamic_pointer_cast<ConcreteSound,ISound>(unusedSoundSources.back());
+		current->SetGain(0);
+	    current->StartPlaying();
+		unusedSoundSources.pop_back();
+		list->push_back(current);
+	}
+
+	return list;
+}
+
+void AudioPlayer::FreeSounds(std::shared_ptr<std::vector<std::shared_ptr<ISound>>> soundsToFree)
+{
+	for (auto sound : *soundsToFree) {
+		std::shared_ptr<ConcreteSound> concrete = std::dynamic_pointer_cast<ConcreteSound, ISound>(sound);
+		concrete->StopPlaying();
+		unusedSoundSources.push_back(concrete);
+	}
+}
+
+void AudioPlayer::SetListenerAtUp(ALfloat vals[6])
+{
+	alListenerfv(AL_ORIENTATION, vals);
+}
+
+int AudioPlayer::SoundsLeft()
+{
+	return unusedSoundSources.size();
 }

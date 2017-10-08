@@ -38,7 +38,7 @@ float CalcGain(std::chrono::microseconds timePast)
 	return gain;
 }
 
-void NavAudioManager::AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timetamp)
+void NavAudioManager::AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timestamp)
 {
 	// check if there are enough sounds left
 	while (audioPlayer.SoundsLeft() < spAudioPoints->size())
@@ -64,7 +64,7 @@ void NavAudioManager::AddAudioFrame(const boost::shared_ptr<const PointCloud>& s
 	}
 
 	// make the audio frame
-	AudioFrame frame = AudioFrame(spSounds, timetamp);
+	AudioFrame frame = AudioFrame(spSounds, timestamp);
 
 	// add the frame
 	spFrames->push_back(frame);
@@ -78,7 +78,7 @@ void NavAudioManager::FadeAudioFrames()
 	Timestamp captureTime = high_resolution_clock::now();
 
 	// check if there are enough sounds left
-	while ((std::chrono::duration_cast <std::chrono::microseconds> (captureTime - (*spFrames)[0].timestamp)) > FADE_TIME_US )
+	while (spFrames->size() > 0 && (std::chrono::duration_cast <std::chrono::microseconds> (captureTime - (*spFrames)[0].timestamp)) > FADE_TIME_US )
 	{
 		// recycle the oldest sounds
 		audioPlayer.FreeSounds((*spFrames)[0].spSounds);

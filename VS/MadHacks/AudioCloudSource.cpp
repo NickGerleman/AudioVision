@@ -78,7 +78,8 @@ void AudioCloudSource::startLoop()
 			// block for scope
 			{
 				std::lock_guard<std::mutex> recordLock(m_recordMutex);
-				m_lastCloud = { spWorldAudioCloud, captureTime }; // move to segmented later
+				m_lastCloud.spAudioPoints = spWorldAudioCloud;
+				m_lastCloud.timestamp = captureTime;
 				m_hasNewData = true;
 			}
 		}

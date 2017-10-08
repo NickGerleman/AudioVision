@@ -1,15 +1,16 @@
 #pragma once
 #include "ISound.h"
+#include "AudioPlayer.h"
 
 struct AudioFrame
 {
 	AudioFrame() = default;
 
-	AudioFrame(const std::shared_ptr<std::vector<ISound>>& spSounds, const Timestamp& timetamp)
+	AudioFrame(const SoundList spSounds, const Timestamp& timetamp)
 		: spSounds(spSounds)
 		, timestamp(timestamp) {}
 
-	std::shared_ptr<std::vector<ISound>> spSounds;
+	SoundList spSounds;
 	Timestamp timestamp;
 };
 

@@ -39,6 +39,7 @@ private:
 	void startReading();
 	void cbRead(int bytesRead);
 	bool parseAngle(std::vector<unsigned char>& buffer, Euler&);
+	static Eigen::Matrix3f eulerToMatrix(const Euler& angle);
 
 	std::string port;
 	boost::asio::io_service ioService;
@@ -53,6 +54,8 @@ private:
 	
 	std::thread ioThread;
 
-	Euler angle;
+	Eigen::Matrix3f angle;
 	mutable std::mutex angleMutex;
+	mutable std::condition_variable angleCondition;
+	mutable bool angleConditionBool, freshAngle;
 };

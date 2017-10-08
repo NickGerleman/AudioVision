@@ -49,7 +49,7 @@ void setup() {
   pinMode(INT2XM, INPUT);
   pinMode(DRDYG, INPUT);
 
-  Serial.begin(57600);
+  Serial.begin(115200);
 
   dof.begin();
   dof.setAccelScale(dof.A_SCALE_2G);
@@ -82,14 +82,14 @@ Angle getAccelAngle(const LSM9DS0& imu) {
     y = dof.calcAccel(dof.ay),
     z = dof.calcAccel(dof.az);
   
-  float pitch = 180.f / PI * atan2(x, mag(y, z)),
-    roll = -180.f / PI * atan2(y, mag(x, z));
+  float pitch =atan2(x, mag(y, z)),
+    roll = atan2(y, mag(x, z));
 
   return {pitch, 0.f, roll};
 }
 
 Angle getGyroRate(const LSM9DS0& imu) {
-  return {-(dof.calcGyro(dof.gy) - BIAS_GYRO_Y), dof.calcGyro(dof.gz) - BIAS_GYRO_Z, -(dof.calcGyro(dof.gx) - BIAS_GYRO_X)};
+  return {-(degToRad(dof.calcGyro(dof.gy) - BIAS_GYRO_Y)), degToRad(dof.calcGyro(dof.gz) - BIAS_GYRO_Z), (degToRad(dof.calcGyro(dof.gx) - BIAS_GYRO_X))};
 }
 
 void compFilter(const float& alpha, Angle& filtered, const Angle& accelAngle, const Angle& gyroRate, const float& dt) {
@@ -112,4 +112,7 @@ void sendAngle(const Angle& angle) {
   
 }
 
+float degToRad(float degrees) {
+  return degrees * PI / 180.f;
+}
 

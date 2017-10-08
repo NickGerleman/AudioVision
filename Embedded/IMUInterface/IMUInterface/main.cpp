@@ -1,14 +1,31 @@
-#include <iostream>
+#include "pch.h"
 
-#include "IMU.hpp"
+#include "IMU.h"
+
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 int main() {
 	std::cout << "[Info] Starting IMU..." << std::flush;
-	IMU imu(3);
+	auto& imu = IMU::get();
 	std::cout << "done" << std::endl;
 
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::seconds(10));
+		static int count = 0;
+
+		Eigen::Matrix3f angle;
+		if (!imu.getAngleBlocking(angle, 20ms)) {
+			std::cout << "[Info] Angle Blocking Timeout"
+				<< std::endl;
+		}
+		else {
+			count++;
+			if (count / 10) {
+
+			}
+			std::cout << count << std::endl;
+		}
 	}
 
 	return 0;

@@ -57,7 +57,7 @@ AudioPlayer::AudioPlayer()
 	ALfloat listenerOri[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
 
 	/* set orientation */
-	alListener3f(AL_POSITION, 0, 0, 0);
+	alListener3f(AL_POSITION, 0, 0, -1);
 	alListener3f(AL_VELOCITY, 0, 0, 0);
 	alListenerfv(AL_ORIENTATION, listenerOri);
 
@@ -76,9 +76,9 @@ AudioPlayer::AudioPlayer()
 			angle -= 3.14159 * 2;
 		}
 
-		float z = 0;
+		float y = 0;
 		float x = 10 * cos(angle);
-		float y = 10 * sin(angle);
+		float z = 10 * sin(angle);
 		alSource3f(sourceNames[0], AL_POSITION, x, y, z);
 	}
 

@@ -21,6 +21,10 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+
 #include <OpenNI2/OpenNI.h>
 
 

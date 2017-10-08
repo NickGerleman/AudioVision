@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "NavAudioManager.h"
 using namespace std::literals::chrono_literals;
+using namespace std::chrono;
 
 const float MIN_GAIN = 0.0f;
 const float MAX_GAIN = 1.0f;
@@ -24,28 +25,73 @@ float CalcPitch(float dist)
 	return pitch;
 }
 
+float CalcGain(std::chrono::microseconds timePast)
+{
+	// clamp
+	timePast = std::min(timePast, FADE_TIME_US);
+	double delta = static_cast<double>(timePast.count());
+
+	// interpolate
+	float fraction = (1.0f - (delta / (FADE_TIME_US.count())));
+	float gain = MIN_GAIN + (fraction * (MAX_GAIN - MIN_GAIN));
+
+	return gain;
+}
+
 void NavAudioManager::AddAudioFrame(const boost::shared_ptr<PointCloud>& spAudioPoints, const Timestamp& timetamp)
 {
+	// check if there are enough sounds left
+/*	while (spAudioPlayer->SoundsLeft() < spAudioPoints->size())
+	{
+		// recycle the oldest sounds
+		spAudioPlayer->FreeSounds(spFrames[0].spSounds);
+		
+		// remove the oldest sound frame
+		spFrames->erase(spFrames->begin());
+	}*/
+
 	// request sound objects
-	const boost::shared_ptr<std::vector<ISound>>& spSounds = spAudioPlayer->RequestSounds(spAudioPoints->size());
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds = spAudioPlayer->RequestSounds(spAudioPoints->size());
 	
 	// set up each of the audio points
 	for (int i = 0; i < spAudioPoints->size(); i++)
 	{
-		pcl::PointXYZ = (*spAudioPoints)[i];
-		(*spSounds)[i].SetPos((*spAudioPoints)[i].x, (*spAudioPoints)[i].y, (*spAudioPoints)[i].z);
-		(*spSounds)[i].SetGain(MAX_GAIN);
-		(*spSounds)[i].SetPitch(CalcPitch();
-
-
-
-			virtual void SetGain(float gain) = 0;
-		virtual void SetPitch(float pitch) = 0;
+		pcl::PointXYZ& point = (*spAudioPoints)[i];
+		std::shared_ptr<ISound>& sound = (*spSounds)[i];
+		sound->SetPos(point.x, point.y, point.z);
+		sound->SetPitch(CalcPitch(point.z));
+		sound->SetGain(MAX_GAIN);
 	}
+
+	// make the audio frame
+	AudioFrame frame = AudioFrame(spSounds, timetamp);
+
+	// add the frame
+	spFrames->push_back(frame);
 }
 
 void NavAudioManager::FadeAudioFrames()
 {
+	Timestamp captureTime = high_resolution_clock::now();
 
+	// check if there are enough sounds left
+	while ((std::chrono::duration_cast <std::chrono::microseconds> (captureTime - (*spFrames)[0].timestamp)) > FADE_TIME_US )
+	{
+		// recycle the oldest sounds
+		spAudioPlayer->FreeSounds((*spFrames)[0].spSounds);
+
+		// remove the oldest sound frame
+		spFrames->erase(spFrames->begin());
+	}
+
+	// attenuate the rest of the sounds
+	for( const auto& soundFrame : *spFrames )
+	{
+		for (const auto& sound : *soundFrame.spSounds)
+		{
+			std::chrono::microseconds timePast = std::chrono::duration_cast <std::chrono::microseconds> (captureTime - soundFrame.timestamp);
+			sound->SetGain(CalcGain(timePast));
+		}
+	}
 }
 

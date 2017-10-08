@@ -57,32 +57,10 @@ AudioPlayer::AudioPlayer()
 	ALfloat listenerOri[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
 
 	/* set orientation */
-	alListener3f(AL_POSITION, 0, 0, -1);
+	alListener3f(AL_POSITION, 0, 0, 0);
 	alListener3f(AL_VELOCITY, 0, 0, 0);
 	alListenerfv(AL_ORIENTATION, listenerOri);
 
-	alSourcei(sourceNames[0], AL_BUFFER, bufferNames[0]);
-	alSourcei(sourceNames[0], AL_LOOPING, AL_TRUE);
-	alSourcePlay(sourceNames[0]);
-
-	float angle = 0;
-
-
-	while (1) {
-		
-		angle += .001;
-		std::cout << angle << "\n";
-		if (angle > 3.14159 * 2) {
-			angle -= 3.14159 * 2;
-		}
-
-		float y = 0;
-		float x = 10 * cos(angle);
-		float z = 10 * sin(angle);
-		alSource3f(sourceNames[0], AL_POSITION, x, y, z);
-	}
-
-	system("pause");
 
 }
 
@@ -104,6 +82,8 @@ void AudioPlayer::loadWave(const char* filename, ALuint buffer) {
 	ALvoid* pcmData = malloc(wavePreamble.dataChunkSize);
 	inputStream.seekg(44);
 	inputStream.read((char *)pcmData, wavePreamble.dataChunkSize);
+
+	inputStream.close();
 
 	alBufferData(buffer, format, pcmData, wavePreamble.dataChunkSize, wavePreamble.sampleRate);
 

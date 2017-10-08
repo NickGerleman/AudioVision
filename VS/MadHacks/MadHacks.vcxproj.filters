@@ -32,7 +32,7 @@
     </ClInclude>
     <ClInclude Include="PeriodicTimer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
+    </ClInclude>a2a7925e87d00800aa1cab99cad22c09037916
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

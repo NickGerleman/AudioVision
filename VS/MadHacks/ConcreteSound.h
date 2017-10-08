@@ -15,7 +15,6 @@ public:
 
 private:
 	const ALuint sourceName;
-	const std::shared_ptr<AudioPlayer> player;
 	
 
 

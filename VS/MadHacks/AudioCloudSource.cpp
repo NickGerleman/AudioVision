@@ -3,7 +3,7 @@
 #include "IMU.h"
 
 const int BUFFER_SIZE = 50;
-const int SAMPLE_SIZE = 1;
+const int SAMPLE_SIZE = 10;
 
 using namespace std::chrono;
 using namespace openni;
@@ -30,7 +30,11 @@ AudioCloudRecord AudioCloudSource::copyLatestCloud()
 {
 	std::lock_guard<std::mutex> recordLock(m_recordMutex);
 	m_hasNewData = false;
-	return m_lastCloud;
+
+	auto spCloud = boost::make_shared<PointCloud>();
+	spCloud->push_back(pcl::PointXYZ(0.0, 0.0, -1000.0));
+
+	return AudioCloudRecord(spCloud, high_resolution_clock::now());
 }
 
 
@@ -72,8 +76,15 @@ void AudioCloudSource::startLoop()
 				}
 			}*/
 
-			viz.updatePointCloud(spClusteredPoints);
-			viz.spinOnce();
+			try{
+				viz.updatePointCloud(spClusteredPoints);
+				viz.spinOnce();
+			}
+			catch (...)
+			{ 
+				std::cerr << "VTK Blew Up" << std::endl;
+			}
+			
 
 			// block for scope
 			{

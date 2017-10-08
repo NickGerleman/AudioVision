@@ -23,7 +23,7 @@ public:
 
 	NavAudioManager(const NavAudioManager&) = delete;
 
-	void AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timetamp);
+	void AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timestamp);
 	void FadeAudioFrames();
 
 private:

@@ -41,14 +41,14 @@ float CalcGain(std::chrono::microseconds timePast)
 void NavAudioManager::AddAudioFrame(const boost::shared_ptr<PointCloud>& spAudioPoints, const Timestamp& timetamp)
 {
 	// check if there are enough sounds left
-/*	while (spAudioPlayer->SoundsLeft() < spAudioPoints->size())
+	while (spAudioPlayer->SoundsLeft() < spAudioPoints->size())
 	{
 		// recycle the oldest sounds
-		spAudioPlayer->FreeSounds(spFrames[0].spSounds);
+		spAudioPlayer->FreeSounds((*spFrames)[0].spSounds);
 		
 		// remove the oldest sound frame
 		spFrames->erase(spFrames->begin());
-	}*/
+	}
 
 	// request sound objects
 	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds = spAudioPlayer->RequestSounds(spAudioPoints->size());

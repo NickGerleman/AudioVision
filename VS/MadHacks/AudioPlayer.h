@@ -33,7 +33,7 @@ public:
 	int SoundsLeft();
 
 	static constexpr const int numBuffers = 1;
-	static constexpr const int maxNumSoundSources = 255;
+	static constexpr const int maxNumSoundSources = 255;// 255;
 private:
 	/*
 		Loads the pcm data from the specified wave file, caller expected to free pointer when done with the data.

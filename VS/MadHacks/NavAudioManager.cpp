@@ -6,10 +6,10 @@ using namespace std::chrono;
 const float MIN_GAIN = 0.0f;
 const float MAX_GAIN = 1.0f;
 const float MIN_PITCH = 0.1f;
-const float MAX_PITCH = 2.0f;
+const float MAX_PITCH = 4.0f;
 const float MIN_DIST = 0.0f;
-const float MAX_DIST = 10000.0f;
-const std::chrono::microseconds FADE_TIME_US = 500ms;
+const float MAX_DIST = 2000.0f;
+const std::chrono::microseconds FADE_TIME_US = 200ms;
 
 float CalcPitch(float dist)
 {

@@ -5,8 +5,8 @@ ConcreteSound::ConcreteSound(ALuint sourceName, ALuint buffer) : sourceName(sour
 {
 	alSourcei(sourceName, AL_BUFFER, buffer);
 	alSourcei(sourceName, AL_LOOPING, AL_TRUE);
-	alSourcePlay(sourceName);
-	SetGain(0);
+	alSourcef(sourceName, AL_REFERENCE_DISTANCE, 50);
+	//alSourcePlay(sourceName);
 }
 
 void ConcreteSound::StopPlaying()
@@ -39,6 +39,7 @@ void ConcreteSound::SetGain(float gain)
 void ConcreteSound::SetPos(float x, float y, float z)
 {
 	alSource3f(sourceName, AL_POSITION, x, y, z);
+	StartPlaying();
 }
 
 void ConcreteSound::SetPitch(float pitch)

@@ -4,6 +4,17 @@
 
 class IMU {
 public:
+	struct Euler {
+		Euler();
+		Euler(float, float, float);
+
+		operator bool() const;
+
+		std::string toString() const;
+
+		float pitch, yaw, roll;
+	};
+
 	static IMU& get();
 	~IMU();
 
@@ -16,16 +27,7 @@ public:
 private:
 #pragma pack(push)
 #pragma pack(1)
-	struct Euler {
-		Euler();
-		Euler(float, float, float);
 
-		operator bool() const;
-
-		std::string toString() const;
-
-		float pitch, yaw, roll;
-	};
 #pragma pack(pop)
 
 	const int BAUD_RATE = 115'200;

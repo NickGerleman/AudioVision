@@ -20,8 +20,8 @@ int main(int argc, char** argv)
 			if (!IMU::get().getAngleBlocking(orientationMat, 30ms))
 				continue;
 
-			auto lookVector = orientationMat * Eigen::Vector3f(0, 0, -1);
-			auto upVector = orientationMat * Eigen::Vector3f(0, 1, 0);
+			Eigen::Vector3f lookVector = orientationMat * Eigen::Vector3f(0, 0, -1);
+			Eigen::Vector3f upVector = orientationMat * Eigen::Vector3f(0, 1, 0);
 			float alTransform[6] = {
 				lookVector.x(), lookVector.y(), lookVector.z(),
 				upVector.x(), upVector.y(), upVector.z()

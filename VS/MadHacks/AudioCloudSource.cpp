@@ -3,7 +3,7 @@
 #include "IMU.h"
 
 const int BUFFER_SIZE = 50;
-const int SAMPLE_SIZE = 10;
+const int SAMPLE_SIZE = 20;
 
 using namespace std::chrono;
 using namespace openni;
@@ -31,10 +31,7 @@ AudioCloudRecord AudioCloudSource::copyLatestCloud()
 	std::lock_guard<std::mutex> recordLock(m_recordMutex);
 	m_hasNewData = false;
 
-	auto spCloud = boost::make_shared<PointCloud>();
-	spCloud->push_back(pcl::PointXYZ(0.0, 0.0, -1000.0));
-
-	return AudioCloudRecord(spCloud, high_resolution_clock::now());
+	return AudioCloudRecord(m_lastCloud.spAudioPoints, m_lastCloud.timestamp);
 }
 
 
@@ -209,7 +206,7 @@ boost::shared_ptr<PointCloud> Camera::captureFrame()
 		for (int x = 0; x < frame.getWidth(); x++)
 		{
 			DepthPixel cameraDepth = rowPtr[x];
-			if (cameraDepth == 0)
+			if (cameraDepth == 0 || cameraDepth > 2'500)
 				continue;
 
 			pcl::PointXYZ worldPt;

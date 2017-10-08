@@ -17,7 +17,7 @@ AudioPlayer::AudioPlayer()
 	//open default audio device
 	device = alcOpenDevice(NULL);
 
-	ALCint attrs[] = { ALC_HRTF_ID_SOFT, ALC_TRUE,
+	ALCint attrs[] = { ALC_HRTF_SOFT, ALC_TRUE,
 	0 };
 
 	if (device) {
@@ -38,7 +38,7 @@ AudioPlayer::AudioPlayer()
 		std::cout << "AudioPlayer was unable to generate buffers";
 	}
 
-	loadWave("resources/soundfiles/space_oddity.wav", bufferNames[0]);
+	loadWave("resources/soundfiles/square.wav", bufferNames[0]);
 
 	error_code = alGetError();
 	alGenSources(maxNumSoundSources, sourceNames);
@@ -66,7 +66,7 @@ AudioPlayer::AudioPlayer()
 		std::cout << "AudioPlayer was unable to generate sound sources";
 	}
 
-	ALfloat listenerOri[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
+	ALfloat listenerOri[] = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
 
 	/* set orientation */
 	alListener3f(AL_POSITION, 0, 0, 0);
@@ -159,8 +159,8 @@ std::shared_ptr<std::vector<std::shared_ptr<ISound>>> AudioPlayer::RequestSounds
 
 	for (size_t i = 0; i < requestedNumber; i++) {
 		std::shared_ptr<ConcreteSound> current = std::dynamic_pointer_cast<ConcreteSound,ISound>(unusedSoundSources.back());
-		current->SetGain(0);
-	    current->StartPlaying();
+		//current->SetGain(0);
+	    //current->StartPlaying();
 		unusedSoundSources.pop_back();
 		list->push_back(current);
 	}

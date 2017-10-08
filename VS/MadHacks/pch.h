@@ -13,8 +13,13 @@
 
 #include <boost/make_shared.hpp>
 
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include <OpenNI2/OpenNI.h>
 

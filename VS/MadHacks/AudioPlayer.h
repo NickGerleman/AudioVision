@@ -29,6 +29,8 @@ public:
 
 	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> RequestSounds(int requestedNumber);
 	void FreeSounds(std::shared_ptr <std::vector<std::shared_ptr<ISound>>> soundsToFree);
+	void SetListenerAtUp(ALfloat vals[6]);
+	int SoundsLeft();
 
 	static constexpr const int numBuffers = 1;
 	static constexpr const int maxNumSoundSources = 255;

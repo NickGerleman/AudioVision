@@ -176,3 +176,13 @@ void AudioPlayer::FreeSounds(std::shared_ptr<std::vector<std::shared_ptr<ISound>
 		unusedSoundSources.push_back(concrete);
 	}
 }
+
+void AudioPlayer::SetListenerAtUp(ALfloat vals[6])
+{
+	alListenerfv(AL_ORIENTATION, vals);
+}
+
+int AudioPlayer::SoundsLeft()
+{
+	return unusedSoundSources.size();
+}

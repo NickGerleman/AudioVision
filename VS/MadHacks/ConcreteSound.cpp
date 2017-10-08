@@ -1,9 +1,32 @@
 #include "pch.h"
 #include "ConcreteSound.h"
 
-ConcreteSound::ConcreteSound(ALuint sourceName, std::shared_ptr<AudioPlayer> player, ALuint buffer) : sourceName(sourceName), player(player)
+ConcreteSound::ConcreteSound(ALuint sourceName, ALuint buffer) : sourceName(sourceName)
 {
 	alSourcei(sourceName, AL_BUFFER, buffer);
+	alSourcei(sourceName, AL_LOOPING, AL_TRUE);
+	SetGain(0);
+}
+
+void ConcreteSound::StopPlaying()
+{
+	ALint state;
+	alGetSourcei(sourceName, AL_SOURCE_STATE, &state);
+
+	if (state == AL_PLAYING) {
+		alSourceStop(sourceName);
+	}
+}
+
+void ConcreteSound::StartPlaying()
+{
+	ALint state;
+	alGetSourcei(sourceName, AL_SOURCE_STATE, &state);
+
+	if (state != AL_PLAYING) {
+		alSourcePlay(sourceName);
+	}
+
 }
 
 

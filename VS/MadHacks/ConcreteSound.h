@@ -9,7 +9,9 @@ public:
 	virtual void SetGain(float gain) override;
 	virtual void SetPos(float x, float y, float z) override;
 	virtual void SetPitch(float pitch) override;
-	ConcreteSound(ALuint sourceName, std::shared_ptr<AudioPlayer> player, ALuint buffer);
+	ConcreteSound(ALuint sourceName, ALuint buffer);
+	void StopPlaying();
+	void StartPlaying();
 
 private:
 	const ALuint sourceName;

@@ -20,12 +20,15 @@ typedef struct {
 
 static_assert(sizeof(wave_preamble_t) == 44, "Wave_preamble not packing correctly");
 
-class AudioPlayer : public std::enable_shared_from_this<AudioPlayer> {
+class AudioPlayer {
 public:
+	static AudioPlayer& instance();
+
 	AudioPlayer();
 	~AudioPlayer();
 
 	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> RequestSounds(int requestedNumber);
+	void FreeSounds(std::shared_ptr <std::vector<std::shared_ptr<ISound>>> soundsToFree);
 
 	static constexpr const int numBuffers = 1;
 	static constexpr const int maxNumSoundSources = 255;
@@ -41,5 +44,4 @@ private:
 	std::vector<ALvoid*> pcms;
 	ALCcontext* context;
 	std::deque<std::shared_ptr<ISound>> unusedSoundSources;
-	std::deque<std::shared_ptr<ISound>> usedSoundSources;
 };

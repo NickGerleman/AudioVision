@@ -6,6 +6,11 @@
 #include <fstream>
 #include <cstdint>
 
+AudioPlayer & AudioPlayer::instance()
+{
+	static AudioPlayer* const _instance(new AudioPlayer());
+	return *_instance;
+}
 
 AudioPlayer::AudioPlayer()
 {
@@ -39,7 +44,8 @@ AudioPlayer::AudioPlayer()
 	alGenSources(maxNumSoundSources, sourceNames);
 
 	for (size_t i = 0; i < maxNumSoundSources; i++) {
-		unusedSoundSources.push_back(std::make_shared<ConcreteSound>(sourceNames[i], shared_from_this(), bufferNames[0]));
+		auto newSound = std::make_shared<ConcreteSound>(sourceNames[i], bufferNames[0]);
+		unusedSoundSources.push_back(newSound);
 	}
 
 	error_code = alGetError();
@@ -152,11 +158,21 @@ std::shared_ptr<std::vector<std::shared_ptr<ISound>>> AudioPlayer::RequestSounds
 	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> list = std::make_shared<std::vector<std::shared_ptr<ISound>>>();
 
 	for (size_t i = 0; i < requestedNumber; i++) {
-		std::shared_ptr<ISound> current = unusedSoundSources.back();
+		std::shared_ptr<ConcreteSound> current = std::dynamic_pointer_cast<ConcreteSound,ISound>(unusedSoundSources.back());
+		current->SetGain(0);
+	    current->StartPlaying();
 		unusedSoundSources.pop_back();
 		list->push_back(current);
-		usedSoundSources.push_back(current);
 	}
 
 	return list;
+}
+
+void AudioPlayer::FreeSounds(std::shared_ptr<std::vector<std::shared_ptr<ISound>>> soundsToFree)
+{
+	for (auto sound : *soundsToFree) {
+		std::shared_ptr<ConcreteSound> concrete = std::dynamic_pointer_cast<ConcreteSound, ISound>(sound);
+		concrete->StopPlaying();
+		unusedSoundSources.push_back(concrete);
+	}
 }

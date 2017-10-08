@@ -2,6 +2,8 @@
 #include "AudioCloudSource.h"
 
 const int BUFFER_SIZE = 50;
+const int SAMPLE_SIZE = 100;
+const int SAMPLES_PER_CLUSTER = 20;
 
 using namespace std::chrono;
 using namespace openni;
@@ -13,11 +15,17 @@ AudioCloudSource& AudioCloudSource::get()
 	return instance;
 }
 
-
-std::deque<AudioCloudRecord> AudioCloudSource::copyBuffer()
+bool AudioCloudSource::hasNewData()
 {
 	std::lock_guard<std::mutex> recordLock(m_recordMutex);
-	return m_records;
+	return m_hasNewData;
+}
+
+AudioCloudRecord AudioCloudSource::copyLatestCloud()
+{
+	std::lock_guard<std::mutex> recordLock(m_recordMutex);
+	m_hasNewData = false;
+	return m_lastCloud;
 }
 
 
@@ -28,24 +36,23 @@ void AudioCloudSource::startLoop()
 		Camera depthCam;
 		pcl::visualization::PCLVisualizer viz;
 		viz.addPointCloud(boost::make_shared<PointCloud>());
+		viz.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1);
 
 		while (true)
 		{
-			Timestamp now = high_resolution_clock::now();
+			Timestamp captureTime = high_resolution_clock::now();
 			auto spCamCloud = depthCam.captureFrame();
 			auto spSegmentedPoints = segmentCloud(spCamCloud);
 
-			viz.updatePointCloud(spCamCloud);
+			viz.updatePointCloud(spSegmentedPoints);
 			viz.spinOnce();
-			auto spWorldAudioCloud = transformToWorld(spSegmentedPoints, Eigen::Matrix3f()); // Grab rotation data from Eric for here
+			//auto spWorldAudioCloud = transformToWorld(spSegmentedPoints, Eigen::Matrix3f()); // Grab rotation data from Eric for here
 
 			// block for scope
 			{
 				std::lock_guard<std::mutex> recordLock(m_recordMutex);
-				m_records.emplace_front(spWorldAudioCloud, now );
-
-				if (m_records.size() > BUFFER_SIZE)
-					m_records.pop_back();
+				m_lastCloud = { spCamCloud, captureTime }; // move to segmented later
+				m_hasNewData = true;
 			}
 		}
 	});
@@ -53,10 +60,41 @@ void AudioCloudSource::startLoop()
 }
 
 
-boost::shared_ptr<PointCloud> AudioCloudSource::segmentCloud(const boost::shared_ptr<PointCloud>& spCloud)
+boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> AudioCloudSource::segmentCloud(const boost::shared_ptr<PointCloud>& spCloud)
 {
-	// TODO
-	return boost::make_shared<PointCloud>();
+	auto spCloudTree = boost::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
+	spCloudTree->setInputCloud(spCloud);
+
+	std::vector<pcl::PointIndices> clusterIndices;
+	pcl::EuclideanClusterExtraction<pcl::PointXYZ> eucCluster;
+	eucCluster.setClusterTolerance(150); // 20cm
+	eucCluster.setMinClusterSize(150);
+	eucCluster.setMaxClusterSize(25000);
+	
+	eucCluster.setSearchMethod(spCloudTree);
+	eucCluster.setInputCloud(spCloud);
+	eucCluster.extract(clusterIndices);
+
+	auto spColorCloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+	for (auto& indices1 : clusterIndices)
+	{
+		uint8_t r = 128 + (std::rand() % 128);
+		uint8_t g = 128 + (std::rand() % 128);
+		uint8_t b = 128 + (std::rand() % 128);
+
+		for (int index : indices1.indices)
+		{
+			pcl::PointXYZRGB point(r, g, b);
+			pcl::PointXYZ origPoint = (*spCloud)[index];
+			point.x = origPoint.x;
+			point.y = origPoint.y;
+			point.z = origPoint.z;
+
+			spColorCloud->push_back(point);
+		}
+	}
+
+	return spColorCloud;
 }
 
 
@@ -128,7 +166,14 @@ boost::shared_ptr<PointCloud> Camera::captureFrame()
 		}	
 	}
 
-	return spWorldCloud;
+	// Reduce detail for faster processing
+	pcl::VoxelGrid<pcl::PointXYZ> voxelGrid;
+	voxelGrid.setInputCloud(spWorldCloud);
+	voxelGrid.setLeafSize(50, 50, 50); // mm
+
+	auto spReducedWorld = boost::make_shared<PointCloud>();
+	voxelGrid.filter(*spReducedWorld);
+	return spReducedWorld;
 }
 
 

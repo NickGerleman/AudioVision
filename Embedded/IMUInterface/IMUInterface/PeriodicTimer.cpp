@@ -1,6 +1,5 @@
-#include "PeriodicTimer.hpp"
-
-#include <iostream>
+#include "pch.h"
+#include "PeriodicTimer.h"
 
 using namespace boost::asio;
 using namespace std;

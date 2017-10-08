@@ -1,18 +1,19 @@
 #pragma once
 
-#include <thread>
-#include <memory>
-#include <array>
-#include <vector>
-#include <mutex>
-#include <condition_variable>
-
-#include <boost/asio.hpp>
-
-#include "PeriodicTimer.hpp"
+#include "PeriodicTimer.h"
 
 class IMU {
 public:
+	static IMU& get();
+	~IMU();
+
+	Eigen::Matrix3f getAngle() const;
+	bool getAngleBlocking(Eigen::Matrix3f& out,
+		const std::chrono::microseconds& maxDelay);
+
+	bool isConnected() const;
+
+private:
 #pragma pack(push)
 #pragma pack(1)
 	struct Euler {
@@ -27,19 +28,11 @@ public:
 	};
 #pragma pack(pop)
 
-	IMU(int comPort);
-	~IMU();
-
-	Euler getAngle() const;
-	bool getAngleBlocking(Euler& out,
-		const std::chrono::microseconds& maxDelay);
-
-	bool isConnected() const;
-
-private:
-	const int BAUD_RATE = 57600;
+	const int BAUD_RATE = 115'200;
 	static const int BUFFER_SIZE = 256;
 	const int START_BYTE = 0x00;
+
+	IMU(int comPort);
 
 	void configComPort();
 

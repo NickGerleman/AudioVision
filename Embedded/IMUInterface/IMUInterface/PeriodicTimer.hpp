@@ -1,11 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <functional>
-
-#include <boost/asio.hpp>
-#include <boost/asio/steady_timer.hpp>
-
 class PeriodicTimer {
 public:
 	using TimerTask = std::function<void(void)>;

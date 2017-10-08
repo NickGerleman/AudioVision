@@ -1,7 +1,5 @@
-#include "IMU.hpp"
-
-#include <iostream>
-#include <exception>
+#include "pch.h"
+#include "IMU.h"
 
 using namespace std;
 using namespace boost::asio;
@@ -63,14 +61,26 @@ IMU::IMU(int _comNumber)
 	connectTimer.start();
 }
 
+IMU& IMU::get()
+{
+	static IMU instance(3);
+	return instance;
+}
+
 IMU::~IMU() {
 	ioWork.reset();
 	ioThread.join();
 }
 
-IMU::Euler IMU::getAngle() const {
+Eigen::Matrix3f IMU::getAngle() const {
 	std::unique_lock<std::mutex> angleLock(angleMutex);
-	return angle;
+	
+	Eigen::Matrix3f mat;
+	mat = Eigen::AngleAxisf(angle.pitch, Eigen::Vector3f::UnitX())
+		* Eigen::AngleAxisf(angle.yaw, Eigen::Vector3f::UnitY())
+		* Eigen::AngleAxisf(-angle.roll, Eigen::Vector3f::UnitZ());
+
+	return mat;
 }
 
 bool IMU::isConnected() const {
@@ -94,7 +104,7 @@ void IMU::configComPort() {
 }
 
 void IMU::startReading() {
-	async_read(comPort, buffer(readBuffer),
+	async_read(comPort, buffer(readBuffer), transfer_at_least(1),
 		[this](const boost::system::error_code& ec, size_t bytesTransferred) {
 		if (ec) {
 			if (ec) {

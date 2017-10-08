@@ -28,7 +28,8 @@ private:
 
 	void startLoop();
 
-	boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> segmentCloud(const boost::shared_ptr<PointCloud>& spCloud);
+	boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> clusterCloud(const boost::shared_ptr<PointCloud>& spCloud);
+	boost::shared_ptr<PointCloud> audioPointsFromClustered(const pcl::PointCloud<pcl::PointXYZRGB>& clusteredCloud);
 	boost::shared_ptr<PointCloud> transformToWorld(const boost::shared_ptr<PointCloud>& spCloud, const Eigen::Matrix3f& currentRotation);
 
 	bool m_hasNewData;

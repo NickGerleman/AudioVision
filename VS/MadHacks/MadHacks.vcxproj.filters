@@ -27,6 +27,12 @@
     <ClInclude Include="ISound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IMU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PeriodicTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>a2a7925e87d00800aa1cab99cad22c09037916
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -38,7 +44,25 @@
     <ClCompile Include="AudioPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AudioCloudSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodicTimer.cpp">
+     <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="NavAudioManager.cpp">
+     <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioCloudSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodicTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

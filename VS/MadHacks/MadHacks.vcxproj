@@ -127,6 +127,7 @@
     <ClInclude Include="IMU.h" />
     <ClInclude Include="ISound.h" />
     <ClInclude Include="NavAudioManager.h" />
+    <ClInclude Include="IMU.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PeriodicTimer.h" />
   </ItemGroup>

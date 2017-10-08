@@ -54,6 +54,15 @@
      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NavAudioManager.cpp">
+     <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioCloudSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodicTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

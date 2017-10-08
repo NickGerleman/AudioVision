@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "AudioCloudSource.h"
+#include "IMU.h"
 
 const int BUFFER_SIZE = 50;
-const int SAMPLE_SIZE = 10;
+const int SAMPLE_SIZE = 500;
 
 using namespace std::chrono;
 using namespace openni;
@@ -35,7 +36,7 @@ void AudioCloudSource::startLoop()
 		Camera depthCam;
 		pcl::visualization::PCLVisualizer viz;
 		viz.addPointCloud(boost::make_shared<PointCloud>());
-		viz.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10);
+		viz.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3);
 
 		while (true)
 		{
@@ -44,17 +45,17 @@ void AudioCloudSource::startLoop()
 			auto spClusteredPoints = clusterCloud(spCamCloud);
 
 			auto spAudioCloud = audioPointsFromClustered(*spClusteredPoints);
-			auto spWorldAudioCloud = transformToWorld(spAudioCloud, Eigen::Matrix3f()); // Grab rotation data from Eric for here
+			auto spWorldAudioCloud = transformToWorld(spAudioCloud, IMU::get().getAngle());
 
 			static std::deque<boost::shared_ptr<PointCloud>> frames;
 			frames.push_front(spWorldAudioCloud);
-			if (frames.size() > 25)
+			if (frames.size() > 1)
 				frames.pop_back();
 
 			auto spComposite = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
 			for (int i = 0; i < frames.size(); i++)
 			{
-				uint8_t comp = ((frames.size() - i) * 255) / frames.size();
+				uint8_t comp = static_cast<uint8_t>(((frames.size() - i) * 255) / frames.size());
 
 				for (const auto& oldPoint : *(*(frames.begin() + i)))
 				{
@@ -122,6 +123,9 @@ boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> AudioCloudSource::clusterCl
 boost::shared_ptr<PointCloud> AudioCloudSource::audioPointsFromClustered(const pcl::PointCloud<pcl::PointXYZRGB>& clusteredCloud)
 {
 	auto spAudioCloud = boost::make_shared<PointCloud>();
+	if (clusteredCloud.size() == 0)
+		return spAudioCloud;
+	
 	for (int i = 0; i < SAMPLE_SIZE; i++)
 	{
 		const auto& origPoint = clusteredCloud[std::rand() % clusteredCloud.size()];
@@ -134,8 +138,10 @@ boost::shared_ptr<PointCloud> AudioCloudSource::audioPointsFromClustered(const p
 
 boost::shared_ptr<PointCloud> AudioCloudSource::transformToWorld(const boost::shared_ptr<PointCloud>& spCloud, const Eigen::Matrix3f& currentRotation)
 {
-	// TODO
-	return spCloud;
+	auto spNewCloud = boost::make_shared<PointCloud>();
+	Eigen::Affine3f inverseMat(currentRotation.inverse());
+	pcl::transformPointCloud(*spCloud, *spNewCloud, inverseMat);
+	return spNewCloud;
 }
 
 

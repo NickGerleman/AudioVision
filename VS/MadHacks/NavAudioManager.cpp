@@ -9,7 +9,7 @@ const float MIN_PITCH = 0.1f;
 const float MAX_PITCH = 2.0f;
 const float MIN_DIST = 0.0f;
 const float MAX_DIST = 10000.0f;
-const std::chrono::microseconds FADE_TIME_US = 10ms;
+const std::chrono::microseconds FADE_TIME_US = 500ms;
 
 float CalcPitch(float dist)
 {
@@ -38,25 +38,25 @@ float CalcGain(std::chrono::microseconds timePast)
 	return gain;
 }
 
-void NavAudioManager::AddAudioFrame(const boost::shared_ptr<PointCloud>& spAudioPoints, const Timestamp& timetamp)
+void NavAudioManager::AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timetamp)
 {
 	// check if there are enough sounds left
-	while (spAudioPlayer->SoundsLeft() < spAudioPoints->size())
+	while (audioPlayer.SoundsLeft() < spAudioPoints->size())
 	{
 		// recycle the oldest sounds
-		spAudioPlayer->FreeSounds((*spFrames)[0].spSounds);
+		audioPlayer.FreeSounds((*spFrames)[0].spSounds);
 		
 		// remove the oldest sound frame
 		spFrames->erase(spFrames->begin());
 	}
 
 	// request sound objects
-	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds = spAudioPlayer->RequestSounds(spAudioPoints->size());
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds = audioPlayer.RequestSounds(spAudioPoints->size());
 	
 	// set up each of the audio points
 	for (int i = 0; i < spAudioPoints->size(); i++)
 	{
-		pcl::PointXYZ& point = (*spAudioPoints)[i];
+		const pcl::PointXYZ& point = (*spAudioPoints)[i];
 		std::shared_ptr<ISound>& sound = (*spSounds)[i];
 		sound->SetPos(point.x, point.y, point.z);
 		sound->SetPitch(CalcPitch(point.z));
@@ -72,13 +72,16 @@ void NavAudioManager::AddAudioFrame(const boost::shared_ptr<PointCloud>& spAudio
 
 void NavAudioManager::FadeAudioFrames()
 {
+	if (spFrames->size() == 0)
+		return;
+
 	Timestamp captureTime = high_resolution_clock::now();
 
 	// check if there are enough sounds left
 	while ((std::chrono::duration_cast <std::chrono::microseconds> (captureTime - (*spFrames)[0].timestamp)) > FADE_TIME_US )
 	{
 		// recycle the oldest sounds
-		spAudioPlayer->FreeSounds((*spFrames)[0].spSounds);
+		audioPlayer.FreeSounds((*spFrames)[0].spSounds);
 
 		// remove the oldest sound frame
 		spFrames->erase(spFrames->begin());

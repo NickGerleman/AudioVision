@@ -17,17 +17,18 @@ struct AudioFrame
 class NavAudioManager
 {
 public:
-	NavAudioManager(const std::shared_ptr<AudioPlayer>& spAudioPlayer)
-		: spAudioPlayer(spAudioPlayer) {}
+	NavAudioManager()
+		: audioPlayer(AudioPlayer::instance())
+		, spFrames(std::make_shared<std::vector<AudioFrame>>()) {}
 
 	NavAudioManager(const NavAudioManager&) = delete;
 
-	void AddAudioFrame(const boost::shared_ptr<PointCloud>& spAudioPoints, const Timestamp& timetamp);
+	void AddAudioFrame(const boost::shared_ptr<const PointCloud>& spAudioPoints, const Timestamp& timetamp);
 	void FadeAudioFrames();
 
 private:
 
 
 	std::shared_ptr<std::vector<AudioFrame>> spFrames;
-	std::shared_ptr<AudioPlayer> spAudioPlayer;
+	AudioPlayer& audioPlayer;
 };

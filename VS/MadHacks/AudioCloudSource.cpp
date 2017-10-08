@@ -3,7 +3,7 @@
 #include "IMU.h"
 
 const int BUFFER_SIZE = 50;
-const int SAMPLE_SIZE = 500;
+const int SAMPLE_SIZE = 1;
 
 using namespace std::chrono;
 using namespace openni;
@@ -11,7 +11,12 @@ using namespace openni;
 AudioCloudSource& AudioCloudSource::get()
 {
 	static AudioCloudSource instance;
-	instance.startLoop();
+	static bool isInit = false;
+
+	if (!isInit)
+		instance.startLoop();
+
+	isInit = true;
 	return instance;
 }
 
@@ -52,7 +57,7 @@ void AudioCloudSource::startLoop()
 			if (frames.size() > 1)
 				frames.pop_back();
 
-			auto spComposite = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+			/*auto spComposite = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
 			for (int i = 0; i < frames.size(); i++)
 			{
 				uint8_t comp = static_cast<uint8_t>(((frames.size() - i) * 255) / frames.size());
@@ -65,9 +70,9 @@ void AudioCloudSource::startLoop()
 					newPoint.z = oldPoint.z;
 					spComposite->push_back(newPoint);
 				}
-			}
+			}*/
 
-			viz.updatePointCloud(spComposite);
+			viz.updatePointCloud(spClusteredPoints);
 			viz.spinOnce();
 
 			// block for scope
@@ -139,8 +144,8 @@ boost::shared_ptr<PointCloud> AudioCloudSource::audioPointsFromClustered(const p
 boost::shared_ptr<PointCloud> AudioCloudSource::transformToWorld(const boost::shared_ptr<PointCloud>& spCloud, const Eigen::Matrix3f& currentRotation)
 {
 	auto spNewCloud = boost::make_shared<PointCloud>();
-	Eigen::Affine3f inverseMat(currentRotation.inverse());
-	pcl::transformPointCloud(*spCloud, *spNewCloud, inverseMat);
+	Eigen::Affine3f mat(currentRotation);
+	pcl::transformPointCloud(*spCloud, *spNewCloud, mat);
 	return spNewCloud;
 }
 

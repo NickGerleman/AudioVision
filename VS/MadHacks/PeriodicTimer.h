@@ -8,7 +8,7 @@ public:
 		const std::chrono::microseconds& period,
 		const TimerTask& task);
 
-	void start();
+	void start(bool runOnStart = true);
 	void stop();
 
 private:

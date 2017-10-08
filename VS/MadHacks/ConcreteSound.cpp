@@ -5,6 +5,7 @@ ConcreteSound::ConcreteSound(ALuint sourceName, ALuint buffer) : sourceName(sour
 {
 	alSourcei(sourceName, AL_BUFFER, buffer);
 	alSourcei(sourceName, AL_LOOPING, AL_TRUE);
+	alSourcePlay(sourceName);
 	SetGain(0);
 }
 
@@ -14,7 +15,7 @@ void ConcreteSound::StopPlaying()
 	alGetSourcei(sourceName, AL_SOURCE_STATE, &state);
 
 	if (state == AL_PLAYING) {
-		alSourceStop(sourceName);
+		alSourcePause(sourceName);
 	}
 }
 

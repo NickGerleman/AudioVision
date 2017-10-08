@@ -1,8 +1,17 @@
 #include "pch.h"
-#include "AudioPlayer.h"
+#include "AudioCloudSource.h"
 
 int main(int argc, char** argv)
 {
-	AudioPlayer audioPlayer;
+	using namespace std::chrono_literals;
 
+	auto& cloudSource = AudioCloudSource::get();
+	std::cout << "Hello World" << std::endl;
+
+	while (true)
+	{
+		std::this_thread::sleep_for(60s);
+	}
+
+	return EXIT_SUCCESS;
 }

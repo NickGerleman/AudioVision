@@ -14,7 +14,7 @@ PeriodicTimer::PeriodicTimer(io_service& _ioService,
 	, running{ false } {
 }
 
-void PeriodicTimer::start() {
+void PeriodicTimer::start(bool runOnStart) {
 	std::cout << "[Info] PeriodicTimer::start" << std::endl;
 
 	running = true;
@@ -24,8 +24,10 @@ void PeriodicTimer::start() {
 		cbTimer(ec);
 	});
 	
-	//Run the task at time t=0
-	ioService.post(task);
+	if (runOnStart) {
+		//Run the task at time t=0
+		ioService.post(task);
+	}
 }
 
 void PeriodicTimer::stop() {

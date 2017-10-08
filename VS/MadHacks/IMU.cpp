@@ -33,9 +33,7 @@ IMU::IMU(int _comNumber)
 	, port{ std::string("COM") + std::to_string(_comNumber) }
 	, comPort{ ioService }
 	, connected{ false }
-	, connectTimer{ ioService, 500ms, [this]() {
-			std::cout << "[Info] IMU::connectTimer: Tick" << std::endl;
-			
+	, connectTimer{ ioService, 5000ms, [this]() {
 			try {
 				comPort.open(port);
 				if (comPort.is_open()) {
@@ -53,7 +51,9 @@ IMU::IMU(int _comNumber)
 					<< std::endl;
 			}
 		} }
-	, ioThread{ [this]() { ioService.run(); } } {
+	, ioThread{ [this]() { ioService.run(); } }
+	, angleConditionBool{ false }
+	, freshAngle{ false } {
 
 	static_assert(sizeof(Euler) == 12, "sizeof(Euler) must be 12");
 
@@ -74,13 +74,36 @@ IMU::~IMU() {
 
 Eigen::Matrix3f IMU::getAngle() const {
 	std::unique_lock<std::mutex> angleLock(angleMutex);
-	
-	Eigen::Matrix3f mat;
-	mat = Eigen::AngleAxisf(angle.pitch, Eigen::Vector3f::UnitX())
-		* Eigen::AngleAxisf(angle.yaw, Eigen::Vector3f::UnitY())
-		* Eigen::AngleAxisf(-angle.roll, Eigen::Vector3f::UnitZ());
 
-	return mat;
+	return angle;
+}
+
+bool IMU::getAngleBlocking(Eigen::Matrix3f& out,
+	const std::chrono::microseconds& maxDelay) {
+	std::unique_lock<std::mutex> angleLock(angleMutex);
+	
+	if (freshAngle) {
+		out = angle;
+		freshAngle = false;
+
+		return true;
+	}
+	else {
+		angleConditionBool = false;
+
+		if (angleCondition.wait_for(angleLock, maxDelay,
+			[this]() { return angleConditionBool; })) {
+			out = angle;
+
+			return true;
+		}
+		else {
+			if (angleConditionBool) {
+				std::cout << "[Error] IMU::getAngleBlocking: angleConditionBool=true" << std::endl;
+			}
+			return false;
+		}
+	}
 }
 
 bool IMU::isConnected() const {
@@ -94,6 +117,15 @@ void IMU::configComPort() {
 		comPort.set_option(serial_port_base::parity(serial_port_base::parity::none));
 		comPort.set_option(serial_port_base::stop_bits(serial_port_base::stop_bits::one));
 		comPort.set_option(serial_port_base::character_size(8));
+
+		auto nativeHandle = comPort.native_handle();
+		COMMTIMEOUTS timeouts;
+		timeouts.ReadIntervalTimeout = MAXDWORD;
+		timeouts.ReadTotalTimeoutMultiplier = 0;
+		timeouts.ReadTotalTimeoutConstant = 0;
+		timeouts.WriteTotalTimeoutMultiplier = 0;
+		timeouts.WriteTotalTimeoutConstant = 0;
+		SetCommTimeouts(nativeHandle, &timeouts);
 	}
 	catch (const std::exception& e) {
 		std::cerr << "[Error] IMU::IMU: " << e.what() << std::endl;
@@ -118,7 +150,7 @@ void IMU::startReading() {
 			catch (const std::exception& e) {
 				std::cerr << "[Error] IMU::cbRead: " << e.what() << std::endl;
 			}
-			connectTimer.start();
+			connectTimer.start(false);
 		}
 		else {
 			cbRead(bytesTransferred);
@@ -135,7 +167,10 @@ void IMU::cbRead(int bytesRead) {
 		if (newAngle) {
 			//TODO: Consider queueing new angles
 			std::unique_lock<std::mutex> angleLock(angleMutex);
-			angle = newAngle;
+			angle = eulerToMatrix(newAngle);
+			freshAngle = true;
+			angleConditionBool = true;
+			angleCondition.notify_all();
 		}
 		else {
 			std::cout << "[Error] IMU::cbRead: Invalid angle: "
@@ -163,4 +198,13 @@ bool IMU::parseAngle(std::vector<unsigned char>& buffer, Euler& out) {
 			return false;
 		}
 	}
+}
+
+Eigen::Matrix3f IMU::eulerToMatrix(const Euler& angle) {
+	Eigen::Matrix3f m;
+	m = Eigen::AngleAxisf(angle.pitch, Eigen::Vector3f::UnitX())
+		* Eigen::AngleAxisf(angle.yaw, Eigen::Vector3f::UnitY())
+		* Eigen::AngleAxisf(-angle.roll, Eigen::Vector3f::UnitZ());
+
+	return m;
 }

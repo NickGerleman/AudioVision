@@ -6,7 +6,7 @@ struct AudioFrame
 {
 	AudioFrame() = default;
 
-	AudioFrame(std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds, const Timestamp& timetamp)
+	AudioFrame(std::shared_ptr<std::vector<std::shared_ptr<ISound>>> spSounds, const Timestamp& timestamp)
 		: spSounds(spSounds)
 		, timestamp(timestamp) {}
 

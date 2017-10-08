@@ -21,13 +21,14 @@
     <ClInclude Include="AudioPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NavAudioManager.h">
+    <ClInclude Include="AudioCloudSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ISound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AudioCloudSource.h">
+    <ClInclude Include="ConcreteSound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,7 +42,10 @@
     <ClCompile Include="AudioPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NavAudioManager.cpp">
+    <ClCompile Include="AudioCloudSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConcreteSound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AudioCloudSource.cpp">

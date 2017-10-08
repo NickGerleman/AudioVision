@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ISound.h"
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
@@ -21,11 +22,16 @@ static_assert(sizeof(wave_preamble_t) == 44, "Wave_preamble not packing correctl
 
 class AudioPlayer {
 public:
+	static AudioPlayer& instance();
+
 	AudioPlayer();
 	~AudioPlayer();
 
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> RequestSounds(int requestedNumber);
+	void FreeSounds(std::shared_ptr <std::vector<std::shared_ptr<ISound>>> soundsToFree);
+
 	static constexpr const int numBuffers = 1;
-	static constexpr const int maxNumSoundSources = 100;
+	static constexpr const int maxNumSoundSources = 255;
 private:
 	/*
 		Loads the pcm data from the specified wave file, caller expected to free pointer when done with the data.
@@ -37,5 +43,5 @@ private:
 	ALuint sourceNames[maxNumSoundSources];
 	std::vector<ALvoid*> pcms;
 	ALCcontext* context;
-
+	std::deque<std::shared_ptr<ISound>> unusedSoundSources;
 };

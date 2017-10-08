@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "AudioPlayer.h"
+#include "ConcreteSound.h"
+#include "ISound.h"
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -35,6 +37,10 @@ AudioPlayer::AudioPlayer()
 
 	error_code = alGetError();
 	alGenSources(maxNumSoundSources, sourceNames);
+
+	for (size_t i = 0; i < maxNumSoundSources; i++) {
+		unusedSoundSources.push_back(std::make_shared<ConcreteSound>(sourceNames[i], shared_from_this(), bufferNames[0]));
+	}
 
 	error_code = alGetError();
 
@@ -135,4 +141,22 @@ AudioPlayer::~AudioPlayer()
 	for (ALvoid* pcmData : pcms) {
 		free(pcmData);
 	}
+}
+
+std::shared_ptr<std::vector<std::shared_ptr<ISound>>> AudioPlayer::RequestSounds(int requestedNumber)
+{
+	if (requestedNumber > unusedSoundSources.size()) {
+		requestedNumber = unusedSoundSources.size();
+	}
+
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> list = std::make_shared<std::vector<std::shared_ptr<ISound>>>();
+
+	for (size_t i = 0; i < requestedNumber; i++) {
+		std::shared_ptr<ISound> current = unusedSoundSources.back();
+		unusedSoundSources.pop_back();
+		list->push_back(current);
+		usedSoundSources.push_back(current);
+	}
+
+	return list;
 }

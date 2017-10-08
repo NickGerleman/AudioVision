@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "ConcreteSound.h"
 
-ConcreteSound::ConcreteSound(ALuint sourceName, std::shared_ptr<AudioPlayer> player) : sourceName(sourceName), player(player)
+ConcreteSound::ConcreteSound(ALuint sourceName, std::shared_ptr<AudioPlayer> player, ALuint buffer) : sourceName(sourceName), player(player)
 {
+	alSourcei(sourceName, AL_BUFFER, buffer);
 }
 
 

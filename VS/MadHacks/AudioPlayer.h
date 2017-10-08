@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ISound.h"
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
@@ -19,10 +20,12 @@ typedef struct {
 
 static_assert(sizeof(wave_preamble_t) == 44, "Wave_preamble not packing correctly");
 
-class AudioPlayer {
+class AudioPlayer : public std::enable_shared_from_this<AudioPlayer> {
 public:
 	AudioPlayer();
 	~AudioPlayer();
+
+	std::shared_ptr<std::vector<std::shared_ptr<ISound>>> RequestSounds(int requestedNumber);
 
 	static constexpr const int numBuffers = 1;
 	static constexpr const int maxNumSoundSources = 255;
@@ -37,5 +40,6 @@ private:
 	ALuint sourceNames[maxNumSoundSources];
 	std::vector<ALvoid*> pcms;
 	ALCcontext* context;
-
+	std::deque<std::shared_ptr<ISound>> unusedSoundSources;
+	std::deque<std::shared_ptr<ISound>> usedSoundSources;
 };

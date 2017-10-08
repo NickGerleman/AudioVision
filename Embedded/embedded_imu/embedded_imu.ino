@@ -19,7 +19,6 @@ const float BIAS_GYRO_Z = -10.3321;
 const float ALPHA = 0.98f;
 
 const byte START_BYTE = 0x00;
-const byte MESSAGE_SIZE = (1 + 3*sizeof(float));
 
 struct Angle {
   Angle()
@@ -35,13 +34,11 @@ struct Angle {
     , roll{_roll} {
     
   }
-
-  String toString() const {
-    return String(pitch) + ", " + yaw + ", " + roll;
-  }
   
   float pitch, yaw, roll;
 };
+
+const byte MESSAGE_SIZE = (1 + sizeof(Angle));
 
 float time;
 Angle filtered;
@@ -52,9 +49,7 @@ void setup() {
   pinMode(INT2XM, INPUT);
   pinMode(DRDYG, INPUT);
 
-  Serial.begin(115200);
-
-  Serial.println("time, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z");
+  Serial.begin(57600);
 
   dof.begin();
   dof.setAccelScale(dof.A_SCALE_2G);
@@ -111,9 +106,7 @@ void sendAngle(const Angle& angle) {
   byte message[MESSAGE_SIZE];
 
   message[0] = START_BYTE;
-  memcpy(message+1, &(angle.pitch), sizeof(float));
-  memcpy(message+1+sizeof(float), &(angle.yaw), sizeof(float));
-  memcpy(message+1+2*sizeof(float), &(angle.roll), sizeof(float));
+  memcpy(message+1, &angle, sizeof(angle));
 
   Serial.write(message, MESSAGE_SIZE);
   
